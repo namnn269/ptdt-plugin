@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: ptdt-plugin
+
+
+app:
+  datasource:
+    namespace:
+      ptdt: csdl-ptdt
