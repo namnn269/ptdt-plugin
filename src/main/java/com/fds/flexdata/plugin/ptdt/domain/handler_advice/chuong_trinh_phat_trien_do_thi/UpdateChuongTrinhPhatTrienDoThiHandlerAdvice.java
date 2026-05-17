@@ -30,13 +30,13 @@ import static java.util.stream.Collectors.toSet;
 
 @Component
 @Extension
-public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
+public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
 
     private final HandlerAdviceKey key;
 
-    public CreateChuongTrinhPhatTrienDoThiHandlerAdvice(Environment env) {
+    public UpdateChuongTrinhPhatTrienDoThiHandlerAdvice(Environment env) {
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
-        key = new HandlerAdviceKey(csdl, "T_ChuongTrinhPhatTrienDoThi", OpenAPI.Type.CREATE);
+        key = new HandlerAdviceKey(csdl, "T_ChuongTrinhPhatTrienDoThi", OpenAPI.Type.UPDATE);
     }
 
     @Override
@@ -46,16 +46,18 @@ public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
 
     @Override
     public void beforeProcess(MongoDatabase database, ClientSession session, ObjectNode request) {
-        validateBeforeCreating(database, session, request);
+        validateBeforeUpdating(database, session, request);
     }
 
-    private void validateBeforeCreating(MongoDatabase database, ClientSession session, ObjectNode request) {
-
+    private void validateBeforeUpdating(MongoDatabase database, ClientSession session, ObjectNode request) {
         JsonNode banTin = request.path("Body");
         if (JsonUtils.isEmpty(banTin)) {
             return;
         }
+
         String tinhThanhMaMuc = banTin.path("DonViThucHien").path("MaMuc").asText();
+        String tinhThanhTenMuc = banTin.path("DonViThucHien").path("TenMuc").asText();
+        String mdd = request.path("MaDinhDanh").asText();
 
         Map<String, String> mddToTenGoiTpMap = banTin.path("DoThiPhatTrien")
                 .valueStream()
@@ -66,9 +68,31 @@ public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
                         (first, second) -> second
                 ));
 
-        if (ObjectUtils.isEmpty(tinhThanhMaMuc) || ObjectUtils.isEmpty(mddToTenGoiTpMap.keySet())) {
+        if (ObjectUtils.isEmpty(mddToTenGoiTpMap.keySet()) || ObjectUtils.isEmpty(mdd)) {
             return;
         }
+
+        if (ObjectUtils.isEmpty(tinhThanhMaMuc)) {
+            MongoCollection<Document> coll = database.getCollection("T_ChuongTrinhPhatTrienDoThi");
+            Bson filters = Filters.eq("MaDinhDanh", mdd);
+            Document tinhThanh = (session != null ? coll.find(session, filters) : coll.find(filters))
+                    .limit(1)
+                    .projection(Projections.include("DonViThucHien.MaMuc", "DonViThucHien.TenMuc"))
+                    .first();
+            if (tinhThanh == null) {
+                throw new AppException(
+                        MessageCode.LOI_DU_LIEU,
+                        "Không tìm thấy chương trình phát triển đô thị.",
+                        DetailError.E4,
+                        List.of(new ChiTietLoi("MaDinhDanh", mdd))
+                );
+            }
+            tinhThanhMaMuc = tinhThanh.get("DonViThucHien", Document.class).getString("MaMuc");
+            if (ObjectUtils.isEmpty(tinhThanhTenMuc)) {
+                tinhThanhTenMuc = tinhThanh.get("DonViThucHien", Document.class).getString("TenMuc");
+            }
+        }
+
 
         MongoCollection<Document> coll = database.getCollection("T_DoThi");
         Bson filters = Filters.and(
@@ -88,10 +112,11 @@ public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
 
         if (!unexpectedData.isEmpty()) {
-            String tenTinhThanh = banTin.path("DonViThucHien").path("TenMuc").asText();
+            String finalTinhThanhMaMuc = tinhThanhMaMuc;
+            String finalTinhThanhTenMuc = tinhThanhTenMuc;
             List<ChiTietLoi> chiTietLoiList = unexpectedData.entrySet()
                     .stream()
-                    .map(err -> new ChiTietLoi("DoThiPhatTrien.MaDinhDanh", String.format("%s (%s) không trực thuộc %s (%s)!", err.getValue(), err.getKey(), tenTinhThanh, tinhThanhMaMuc)))
+                    .map(err -> new ChiTietLoi("DoThiPhatTrien.MaDinhDanh", String.format("%s (%s) không trực thuộc %s (%s)!", err.getValue(), err.getKey(), finalTinhThanhTenMuc, finalTinhThanhMaMuc)))
                     .toList();
 
             throw new AppException(
