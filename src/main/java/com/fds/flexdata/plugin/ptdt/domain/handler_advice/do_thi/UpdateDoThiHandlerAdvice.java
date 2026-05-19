@@ -16,17 +16,28 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Component
 @Extension
-public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
+public class UpdateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
 
     private final HandlerAdviceKey key;
     private final CommonFunctionHandler commonFunctionHandler;
 
-    public CreateDoThiHandlerAdvice(Environment env, CommonFunctionHandler commonFunctionHandler) {
+    public UpdateDoThiHandlerAdvice(
+            Environment env,
+            CommonFunctionHandler commonFunctionHandler
+    ) {
         this.commonFunctionHandler = commonFunctionHandler;
+
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
-        key = new HandlerAdviceKey(csdl, "T_DoThi", OpenAPI.Type.CREATE);
+        this.key = new HandlerAdviceKey(
+                csdl,
+                "T_DoThi",
+                OpenAPI.Type.UPDATE
+        );
     }
 
     @Override
@@ -36,7 +47,6 @@ public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
 
     @Override
     public void beforeProcess(MongoDatabase database, ClientSession session, ObjectNode request) {
-
         JsonNode banTin = request.path("Body");
 
         if (JsonUtils.isEmpty(banTin)) {
@@ -53,40 +63,52 @@ public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
                 .path("MaMuc")
                 .asText();
 
-        String tinhThanhMaMuc = "";
-        String xaPhuongMaMuc = "";
+        Set<String> tinhThanhMaMucSet = new HashSet<>();
+        Set<String> xaPhuongMaMucSet = new HashSet<>();
 
         if (diaBanNode.isArray() && !diaBanNode.isEmpty()) {
-            JsonNode diaBan = diaBanNode.get(0);
+            for (JsonNode diaBan : diaBanNode) {
+                String tinhThanhMaMuc = diaBan.path("TinhThanh")
+                        .path("MaMuc")
+                        .asText();
 
-            tinhThanhMaMuc = diaBan.path("TinhThanh")
-                    .path("MaMuc")
-                    .asText();
+                String xaPhuongMaMuc = diaBan.path("XaPhuong")
+                        .path("MaMuc")
+                        .asText();
 
-            xaPhuongMaMuc = diaBan.path("XaPhuong")
-                    .path("MaMuc")
-                    .asText();
+                if (!ObjectUtils.isEmpty(tinhThanhMaMuc)) {
+                    tinhThanhMaMucSet.add(tinhThanhMaMuc);
+                }
+
+                if (!ObjectUtils.isEmpty(xaPhuongMaMuc)) {
+                    xaPhuongMaMucSet.add(xaPhuongMaMuc);
+                }
+            }
         }
 
-        if (ObjectUtils.isEmpty(tinhThanhMaMuc)
-                && ObjectUtils.isEmpty(xaPhuongMaMuc)
-                && ObjectUtils.isEmpty(trucThuocTinhThanhMaMuc)) {
+        if (ObjectUtils.isEmpty(trucThuocTinhThanhMaMuc)
+                && tinhThanhMaMucSet.isEmpty()
+                && xaPhuongMaMucSet.isEmpty()) {
             return;
         }
-
-        DataPermissionValidationUtils.validateTinhThanhAccess(
-                tinhThanhMaMuc,
-                commonFunctionHandler
-        );
 
         DataPermissionValidationUtils.validateTinhThanhAccess(
                 trucThuocTinhThanhMaMuc,
                 commonFunctionHandler
         );
 
-        DataPermissionValidationUtils.validateXaPhuongAccess(
-                xaPhuongMaMuc,
-                commonFunctionHandler
-        );
+        for (String tinhThanhMaMuc : tinhThanhMaMucSet) {
+            DataPermissionValidationUtils.validateTinhThanhAccess(
+                    tinhThanhMaMuc,
+                    commonFunctionHandler
+            );
+        }
+
+        for (String xaPhuongMaMuc : xaPhuongMaMucSet) {
+            DataPermissionValidationUtils.validateXaPhuongAccess(
+                    xaPhuongMaMuc,
+                    commonFunctionHandler
+            );
+        }
     }
 }

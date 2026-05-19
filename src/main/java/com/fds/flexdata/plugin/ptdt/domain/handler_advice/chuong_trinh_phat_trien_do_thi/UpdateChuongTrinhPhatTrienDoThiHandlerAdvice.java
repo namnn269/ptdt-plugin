@@ -2,8 +2,12 @@ package com.fds.flexdata.plugin.ptdt.domain.handler_advice.chuong_trinh_phat_tri
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fds.flex.user.context.UserContextHolder;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
+import com.fds.flexdata.plugin.ptdt.shared.DanhTinhDienTuUtils;
+import com.fds.flexdata.plugin.ptdt.shared.DataPermissionValidationUtils;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
+import com.fds.flexdata.pluginapi.CommonFunctionHandler;
 import com.fds.flexdata.pluginapi.HandlerAdvice;
 import com.fds.flexdata.pluginapi.annotation.OpenAPI;
 import com.fds.flexdata.pluginapi.exception.AppException;
@@ -33,8 +37,9 @@ import static java.util.stream.Collectors.toSet;
 public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
 
     private final HandlerAdviceKey key;
-
-    public UpdateChuongTrinhPhatTrienDoThiHandlerAdvice(Environment env) {
+    private final CommonFunctionHandler commonFunctionHandler;
+    public UpdateChuongTrinhPhatTrienDoThiHandlerAdvice(Environment env, CommonFunctionHandler commonFunctionHandler) {
+        this.commonFunctionHandler = commonFunctionHandler;
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
         key = new HandlerAdviceKey(csdl, "T_ChuongTrinhPhatTrienDoThi", OpenAPI.Type.UPDATE);
     }
@@ -47,6 +52,7 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
     @Override
     public void beforeProcess(MongoDatabase database, ClientSession session, ObjectNode request) {
         validateBeforeUpdating(database, session, request);
+        validatePermissionAndDoThiRelation(database, session, request);
     }
 
     private void validateBeforeUpdating(MongoDatabase database, ClientSession session, ObjectNode request) {
@@ -126,5 +132,54 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
                     chiTietLoiList
             );
         }
+    }
+
+    private void validatePermissionAndDoThiRelation(
+            MongoDatabase database,
+            ClientSession session,
+            ObjectNode request
+    ) {
+        JsonNode banTin = request.path("Body");
+
+        if (JsonUtils.isEmpty(banTin)) {
+            return;
+        }
+
+        String tinhThanhMaMuc = banTin.path("DonViThucHien")
+                .path("MaMuc")
+                .asText();
+
+        String tinhThanhTenMuc = banTin.path("DonViThucHien")
+                .path("TenMuc")
+                .asText();
+
+        if (ObjectUtils.isEmpty(tinhThanhMaMuc)) {
+            return;
+        }
+
+        DataPermissionValidationUtils.validateTinhThanhAccess(
+                tinhThanhMaMuc,
+                commonFunctionHandler
+        );
+
+        Map<String, String> doThiMap =
+                DataPermissionValidationUtils.extractMaDinhDanhToTenMap(
+                        banTin,
+                        "DoThiPhatTrien",
+                        "MaDinhDanh",
+                        "TenDoThi"
+                );
+
+        DataPermissionValidationUtils.validateEntityBelongsToTinhThanh(
+                database,
+                session,
+                "T_DoThi",
+                "MaDinhDanh",
+                "TrucThuocTinhThanh.MaMuc",
+                tinhThanhMaMuc,
+                tinhThanhTenMuc,
+                "DoThiPhatTrien.MaDinhDanh",
+                doThiMap
+        );
     }
 }
