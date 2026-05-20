@@ -1,4 +1,4 @@
-package com.fds.flexdata.plugin.ptdt.domain.handler_advice.do_thi;
+package com.fds.flexdata.plugin.ptdt.domain.handler_advice.vai_tro_su_dung;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -16,15 +16,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Extension
-public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
+public class CreateVaiTroSuDungHandlerAdvice implements HandlerAdvice, ExtensionPoint {
 
     private final HandlerAdviceKey key;
     private final DataPermissionService dataPermissionService;
 
-    public CreateDoThiHandlerAdvice(Environment env, DataPermissionService dataPermissionService) {
+    public CreateVaiTroSuDungHandlerAdvice(Environment env, DataPermissionService dataPermissionService) {
         this.dataPermissionService = dataPermissionService;
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
-        this.key = new HandlerAdviceKey(csdl, "T_DoThi", OpenAPI.Type.CREATE);
+        this.key = new HandlerAdviceKey(csdl, "C_VaiTroSuDung", OpenAPI.Type.CREATE);
     }
 
     @Override
@@ -40,25 +40,10 @@ public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
             return;
         }
 
-        checkPermission(body);
+        checkPermission();
     }
 
-    private void checkPermission(JsonNode body) {
-        dataPermissionService.checkTinhThanh(body.path("TrucThuocTinhThanh").path("MaMuc").asText());
-
-        JsonNode diaBans = body.path("DiaBanTrucThuoc");
-
-        if (!diaBans.isArray()) {
-            return;
-        }
-
-        for (JsonNode diaBan : diaBans) {
-            checkDiaBan(diaBan);
-        }
-    }
-
-    private void checkDiaBan(JsonNode diaBan) {
-        dataPermissionService.checkTinhThanh(diaBan.path("TinhThanh").path("MaMuc").asText());
-        dataPermissionService.checkXaPhuong(diaBan.path("XaPhuong").path("MaMuc").asText());
+    private void checkPermission() {
+        dataPermissionService.checkPermission();
     }
 }

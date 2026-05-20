@@ -7,3 +7,4 @@ app:
   datasource:
     namespace:
       ptdt: csdl-ptdt
+      sso: csdl-sso

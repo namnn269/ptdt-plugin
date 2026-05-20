@@ -2,12 +2,10 @@ package com.fds.flexdata.plugin.ptdt.domain.handler_advice.chuong_trinh_phat_tri
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fds.flex.user.context.UserContextHolder;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
-import com.fds.flexdata.plugin.ptdt.shared.DanhTinhDienTuUtils;
-import com.fds.flexdata.plugin.ptdt.shared.DataPermissionValidationUtils;
+import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
+import com.fds.flexdata.plugin.ptdt.service.EntityRelationService;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
-import com.fds.flexdata.pluginapi.CommonFunctionHandler;
 import com.fds.flexdata.pluginapi.HandlerAdvice;
 import com.fds.flexdata.pluginapi.annotation.OpenAPI;
 import com.fds.flexdata.pluginapi.exception.AppException;
@@ -27,7 +25,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -37,11 +39,14 @@ import static java.util.stream.Collectors.toSet;
 public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
 
     private final HandlerAdviceKey key;
-    private final CommonFunctionHandler commonFunctionHandler;
-    public UpdateChuongTrinhPhatTrienDoThiHandlerAdvice(Environment env, CommonFunctionHandler commonFunctionHandler) {
-        this.commonFunctionHandler = commonFunctionHandler;
+    private final DataPermissionService dataPermissionService;
+    private final EntityRelationService entityRelationService;
+
+    public UpdateChuongTrinhPhatTrienDoThiHandlerAdvice(Environment env, DataPermissionService dataPermissionService, EntityRelationService entityRelationService) {
+        this.dataPermissionService = dataPermissionService;
+        this.entityRelationService = entityRelationService;
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
-        key = new HandlerAdviceKey(csdl, "T_ChuongTrinhPhatTrienDoThi", OpenAPI.Type.UPDATE);
+        this.key = new HandlerAdviceKey(csdl, "T_ChuongTrinhPhatTrienDoThi", OpenAPI.Type.UPDATE);
     }
 
     @Override
@@ -52,7 +57,35 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
     @Override
     public void beforeProcess(MongoDatabase database, ClientSession session, ObjectNode request) {
         validateBeforeUpdating(database, session, request);
-        validatePermissionAndDoThiRelation(database, session, request);
+        checkPermissionAndDoThi(database, session, request);
+    }
+
+    private void checkPermissionAndDoThi(MongoDatabase database, ClientSession session, ObjectNode request) {
+        JsonNode body = request.path("Body");
+
+        if (JsonUtils.isEmpty(body)) {
+            return;
+        }
+
+        String tinhThanh = body.path("DonViThucHien").path("MaMuc").asText();
+        String tenTinhThanh = body.path("DonViThucHien").path("TenMuc").asText();
+        if (ObjectUtils.isEmpty(tinhThanh)) {
+            return;
+        }
+
+        dataPermissionService.checkTinhThanh(tinhThanh);
+
+        Map<String, String> doThiMap = body.path("DoThiPhatTrien")
+                .valueStream()
+                .filter(Objects::nonNull)
+                .filter(item -> !ObjectUtils.isEmpty(item.path("MaDinhDanh").asText()))
+                .collect(toMap(
+                        item -> item.path("MaDinhDanh").asText(),
+                        item -> item.path("TenDoThi").asText(),
+                        (first, second) -> second
+                ));
+
+        entityRelationService.checkBelongsToTinhThanh(database, session, "T_DoThi", "MaDinhDanh", "TrucThuocTinhThanh.MaMuc", tinhThanh, tenTinhThanh, "DoThiPhatTrien.MaDinhDanh", doThiMap);
     }
 
     private void validateBeforeUpdating(MongoDatabase database, ClientSession session, ObjectNode request) {
@@ -99,7 +132,6 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
             }
         }
 
-
         MongoCollection<Document> coll = database.getCollection("T_DoThi");
         Bson filters = Filters.and(
                 Filters.in("MaDinhDanh", mddToTenGoiTpMap.keySet()),
@@ -122,7 +154,16 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
             String finalTinhThanhTenMuc = tinhThanhTenMuc;
             List<ChiTietLoi> chiTietLoiList = unexpectedData.entrySet()
                     .stream()
-                    .map(err -> new ChiTietLoi("DoThiPhatTrien.MaDinhDanh", String.format("%s (%s) không trực thuộc %s (%s)!", err.getValue(), err.getKey(), finalTinhThanhTenMuc, finalTinhThanhMaMuc)))
+                    .map(err -> new ChiTietLoi(
+                            "DoThiPhatTrien.MaDinhDanh",
+                            String.format(
+                                    "%s (%s) không trực thuộc %s (%s)!",
+                                    err.getValue(),
+                                    err.getKey(),
+                                    finalTinhThanhTenMuc,
+                                    finalTinhThanhMaMuc
+                            )
+                    ))
                     .toList();
 
             throw new AppException(
@@ -132,54 +173,5 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
                     chiTietLoiList
             );
         }
-    }
-
-    private void validatePermissionAndDoThiRelation(
-            MongoDatabase database,
-            ClientSession session,
-            ObjectNode request
-    ) {
-        JsonNode banTin = request.path("Body");
-
-        if (JsonUtils.isEmpty(banTin)) {
-            return;
-        }
-
-        String tinhThanhMaMuc = banTin.path("DonViThucHien")
-                .path("MaMuc")
-                .asText();
-
-        String tinhThanhTenMuc = banTin.path("DonViThucHien")
-                .path("TenMuc")
-                .asText();
-
-        if (ObjectUtils.isEmpty(tinhThanhMaMuc)) {
-            return;
-        }
-
-        DataPermissionValidationUtils.validateTinhThanhAccess(
-                tinhThanhMaMuc,
-                commonFunctionHandler
-        );
-
-        Map<String, String> doThiMap =
-                DataPermissionValidationUtils.extractMaDinhDanhToTenMap(
-                        banTin,
-                        "DoThiPhatTrien",
-                        "MaDinhDanh",
-                        "TenDoThi"
-                );
-
-        DataPermissionValidationUtils.validateEntityBelongsToTinhThanh(
-                database,
-                session,
-                "T_DoThi",
-                "MaDinhDanh",
-                "TrucThuocTinhThanh.MaMuc",
-                tinhThanhMaMuc,
-                tinhThanhTenMuc,
-                "DoThiPhatTrien.MaDinhDanh",
-                doThiMap
-        );
     }
 }

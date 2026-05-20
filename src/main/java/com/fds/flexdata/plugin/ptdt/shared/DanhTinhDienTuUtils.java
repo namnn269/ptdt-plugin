@@ -17,38 +17,17 @@ public final class DanhTinhDienTuUtils {
     private DanhTinhDienTuUtils() {
     }
 
-    public static Document getDanhTinhDienTuByMaSoID(
-            CommonFunctionHandler commonFunctionHandler,
-            String maSoID
-    ) {
+    public static Document getDanhTinhDienTuByMaSoID(CommonFunctionHandler commonFunctionHandler, String maSoID) {
 
         if (maSoID == null || maSoID.isBlank()) {
             return null;
         }
 
-        DataSourceRequest dataSourceRequest =
-                new DataSourceRequest(
-                        SSO_NAMESPACE,
-                        COLLECTION_NAME
-                );
+        DataSourceRequest dataSourceRequest = new DataSourceRequest(SSO_NAMESPACE, COLLECTION_NAME);
 
-        List<Document> documents = commonFunctionHandler.aggregate(
-                dataSourceRequest,
-                List.of(
-                        Aggregates.match(
-                                Filters.eq("MaSoID", maSoID)
-                        ),
-                        Aggregates.project(
-                                Projections.fields(
-                                        Projections.include(
-                                                "TaiKhoanQuanTri",
-                                                "PhanVungDuLieuTruyCap"
-                                        )
-                                )
-                        )
-                )
-        );
-
+        List<Document> documents = commonFunctionHandler.aggregate(dataSourceRequest,
+                List.of(Aggregates.match(Filters.eq("MaSoID", maSoID)),
+                        Aggregates.project(Projections.fields(Projections.include("TaiKhoanQuanTri", "PhanVungDuLieuTruyCap")))));
         if (documents == null || documents.isEmpty()) {
             return null;
         }
