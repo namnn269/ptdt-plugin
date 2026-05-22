@@ -40,8 +40,8 @@ public class DataPermissionService {
         if (!user.allowed().contains(maMuc)) {
 
             throw new AppException(
-                    MessageCode.LOI_DU_LIEU,
-                    MessageCode.LOI_DU_LIEU.getValue(),
+                    MessageCode.LOI_PHAN_QUYEN,
+                    MessageCode.LOI_PHAN_QUYEN.getValue(),
                     DetailError.E4,
                     List.of(new ChiTietLoi(field, messagePrefix + maMuc))
             );

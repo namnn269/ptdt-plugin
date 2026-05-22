@@ -106,8 +106,8 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
 
     private void throwError(String field, String message) {
         throw new AppException(
-                MessageCode.LOI_DU_LIEU,
-                MessageCode.LOI_DU_LIEU.getValue(),
+                MessageCode.LOI_PHAN_QUYEN,
+                MessageCode.LOI_PHAN_QUYEN.getValue(),
                 DetailError.E4,
                 List.of(new ChiTietLoi(field, message))
         );
