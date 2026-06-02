@@ -61,8 +61,11 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
     }
 
     private void checkXaPhuongByUserPhanVung(MongoDatabase database, ClientSession session, JsonNode body) {
-        String tinhMa = body.path("TinhThanh").path("MaMuc").asText("").trim();
-        String tinhTen = body.path("TinhThanh").path("TenMuc").asText("").trim();
+        String tinhMa = body.path("TinhThanh").path("MaMuc").asText();
+        String tinhTen = body.path("TinhThanh").path("TenMuc").asText();
+
+        String xaMa = body.path("XaPhuong").path("MaMuc").asText();
+        String xaTen = body.path("XaPhuong").path("TenMuc").asText();
 
         UserAccessService.UserAccess access = userAccessService.getCurrentUserAccess();
 
@@ -71,24 +74,46 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
         }
 
         if (ObjectUtils.isEmpty(access.allowed())) {
-            throwError(
-                    "TinhThanh.MaMuc",
-                    "Người dùng chưa được phân vùng dữ liệu truy cập!"
-            );
+            throwError("XaPhuong.MaMuc", "Người dùng chưa được phân vùng dữ liệu truy cập!");
+        }
+
+        if (ObjectUtils.isEmpty(tinhMa)) {
+            throwError("TinhThanh.MaMuc", "Thiếu thông tin tỉnh/thành!");
+        }
+
+        if (!access.allowed().contains(xaMa) && !xaMa.isEmpty()) {
+            throwError("XaPhuong.MaMuc", String.format("Người dùng không có quyền thao tác với xã/phường %s (%s)!", ObjectUtils.isEmpty(xaTen) ? "xã/phường" : xaTen, xaMa));
         }
 
         MongoCollection<Document> coll = database.getCollection("C_XaPhuong");
 
-        Bson filter = Filters.and(
-                Filters.eq("TinhThanh.MaMuc", tinhMa),
-                Filters.in("MaMuc", access.allowed())
-        );
-
-        Document found = coll.find(filter)
-                .limit(1)
-                .first();
-
+        Bson filter ;
+        if (!ObjectUtils.isEmpty(xaMa)) {
+            filter = Filters.and(
+                    Filters.eq("MaMuc", xaMa),
+                    Filters.eq("TinhThanh.MaMuc", tinhMa)
+            );
+        } else {
+            filter = Filters.and(
+                    Filters.eq("TinhThanh.MaMuc", tinhMa),
+                    Filters.in("MaMuc", access.allowed())
+            );
+        }
+        Document found = coll.find(filter).limit(1).first();
         if (found == null) {
+            if (!ObjectUtils.isEmpty(xaMa)) {
+                throwError(
+                        "XaPhuong.MaMuc",
+                        String.format(
+                                "Xã/phường %s (%s) không thuộc tỉnh/thành %s (%s)!",
+                                ObjectUtils.isEmpty(xaTen) ? "xã/phường" : xaTen,
+                                xaMa,
+                                ObjectUtils.isEmpty(tinhTen) ? "tỉnh/thành" : tinhTen,
+                                tinhMa
+                        )
+                );
+            }
+
             throwError(
                     "TinhThanh.MaMuc",
                     String.format(
