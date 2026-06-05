@@ -67,8 +67,8 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
             return;
         }
 
-        String tinhThanh = body.path("DonViThucHien").path("MaMuc").asText();
-        String tenTinhThanh = body.path("DonViThucHien").path("TenMuc").asText();
+        String tinhThanh = body.path("DonViThucHien").path("MaMuc").asString();
+        String tenTinhThanh = body.path("DonViThucHien").path("TenMuc").asString();
         if (ObjectUtils.isEmpty(tinhThanh)) {
             return;
         }
@@ -78,10 +78,10 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
         Map<String, String> doThiMap = body.path("DoThiPhatTrien")
                 .valueStream()
                 .filter(Objects::nonNull)
-                .filter(item -> !ObjectUtils.isEmpty(item.path("MaDinhDanh").asText()))
+                .filter(item -> !ObjectUtils.isEmpty(item.path("MaDinhDanh").asString()))
                 .collect(toMap(
-                        item -> item.path("MaDinhDanh").asText(),
-                        item -> item.path("TenDoThi").asText(),
+                        item -> item.path("MaDinhDanh").asString(),
+                        item -> item.path("TenDoThi").asString(),
                         (first, second) -> second
                 ));
 
@@ -94,16 +94,16 @@ public class UpdateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
             return;
         }
 
-        String tinhThanhMaMuc = banTin.path("DonViThucHien").path("MaMuc").asText();
-        String tinhThanhTenMuc = banTin.path("DonViThucHien").path("TenMuc").asText();
-        String mdd = request.path("MaDinhDanh").asText();
+        String tinhThanhMaMuc = banTin.path("DonViThucHien").path("MaMuc").asString();
+        String tinhThanhTenMuc = banTin.path("DonViThucHien").path("TenMuc").asString();
+        String mdd = request.path("MaDinhDanh").asString();
 
         Map<String, String> mddToTenGoiTpMap = banTin.path("DoThiPhatTrien")
                 .valueStream()
                 .filter(Objects::nonNull)
                 .collect(toMap(
-                        item -> item.path("MaDinhDanh").asText(),
-                        item -> item.path("TenDoThi").asText(),
+                        item -> item.path("MaDinhDanh").asString(),
+                        item -> item.path("TenDoThi").asString(),
                         (first, second) -> second
                 ));
 

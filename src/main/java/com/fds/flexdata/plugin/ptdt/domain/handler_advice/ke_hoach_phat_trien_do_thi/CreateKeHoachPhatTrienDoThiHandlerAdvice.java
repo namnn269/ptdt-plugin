@@ -44,7 +44,7 @@ public class CreateKeHoachPhatTrienDoThiHandlerAdvice implements HandlerAdvice, 
     }
 
     private void checkPermission(JsonNode body) {
-        dataPermissionService.checkTinhThanh(body.path("DonViThucHien").path("MaMuc").asText());
+        dataPermissionService.checkTinhThanh(body.path("DonViThucHien").path("MaMuc").asString());
     }
 
 }

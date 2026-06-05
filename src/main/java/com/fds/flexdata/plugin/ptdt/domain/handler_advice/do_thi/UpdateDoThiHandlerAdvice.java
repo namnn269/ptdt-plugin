@@ -42,7 +42,7 @@ public class UpdateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
     }
 
     private void checkPermission(JsonNode body) {
-        dataPermissionService.checkTinhThanh(body.path("TrucThuocTinhThanh").path("MaMuc").asText());
+        dataPermissionService.checkTinhThanh(body.path("TrucThuocTinhThanh").path("MaMuc").asString());
 
         JsonNode diaBans = body.path("DiaBanTrucThuoc");
 
@@ -56,7 +56,7 @@ public class UpdateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
     }
 
     private void checkDiaBan(JsonNode diaBan) {
-        dataPermissionService.checkTinhThanh(diaBan.path("TinhThanh").path("MaMuc").asText());
-        dataPermissionService.checkXaPhuong(diaBan.path("XaPhuong").path("MaMuc").asText());
+        dataPermissionService.checkTinhThanh(diaBan.path("TinhThanh").path("MaMuc").asString());
+        dataPermissionService.checkXaPhuong(diaBan.path("XaPhuong").path("MaMuc").asString());
     }
 }
