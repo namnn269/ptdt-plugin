@@ -1,7 +1,7 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.can_bo;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.fds.flex.context.model.User;
 import com.fds.flex.user.context.UserContextHolder;
 import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
@@ -47,7 +47,7 @@ public class CreateCanBoHandlerAdvice implements HandlerAdvice, ExtensionPoint {
             );
         }
 
-        ObjectNode body = request.with("Body");
+        ObjectNode body = request.withObjectProperty("Body");
 
         ObjectNode danhTinhDienTuNode = body.putObject("DanhTinhDienTu");
 
