@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Plugin Controller"
+  short_description: "Create contract-only plugin REST APIs"
+  default_prompt: "Use $create-plugin-controller to add a REST controller whose Constants.API_PREFIX starts with /plugin."

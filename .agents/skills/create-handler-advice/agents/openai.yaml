@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create HandlerAdvice"
+  short_description: "Create contract-only HandlerAdvice extensions"
+  default_prompt: "Use $create-handler-advice to add a HandlerAdvice implementation using only the shared plugin-api contract."
