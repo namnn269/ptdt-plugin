@@ -1,7 +1,7 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.vai_tro_su_dung;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
 import com.fds.flexdata.pluginapi.HandlerAdvice;

@@ -1,7 +1,7 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.ke_hoach_phat_trien_do_thi;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
 import com.fds.flexdata.pluginapi.HandlerAdvice;
@@ -44,7 +44,7 @@ public class CreateKeHoachPhatTrienDoThiHandlerAdvice implements HandlerAdvice, 
     }
 
     private void checkPermission(JsonNode body) {
-        dataPermissionService.checkTinhThanh(body.path("DonViThucHien").path("MaMuc").asText());
+        dataPermissionService.checkTinhThanh(body.path("DonViThucHien").path("MaMuc").asString());
     }
 
 }

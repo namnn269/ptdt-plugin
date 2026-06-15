@@ -1,7 +1,7 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.chuong_trinh_phat_trien_do_thi;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
 import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
 import com.fds.flexdata.plugin.ptdt.service.EntityRelationService;
@@ -63,7 +63,7 @@ public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
     private void checkPermission(ObjectNode request) {
         JsonNode body = request.path("Body");
         if (JsonUtils.isEmpty(body)) { return; }
-        String tinhThanh = body.path("DonViThucHien").path("MaMuc").asText();
+        String tinhThanh = body.path("DonViThucHien").path("MaMuc").asString();
 
         dataPermissionService.checkTinhThanh(tinhThanh);
     }
@@ -74,14 +74,14 @@ public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
         if (JsonUtils.isEmpty(banTin)) {
             return;
         }
-        String tinhThanhMaMuc = banTin.path("DonViThucHien").path("MaMuc").asText();
+        String tinhThanhMaMuc = banTin.path("DonViThucHien").path("MaMuc").asString();
 
         Map<String, String> mddToTenGoiTpMap = banTin.path("DoThiPhatTrien")
                 .valueStream()
                 .filter(Objects::nonNull)
                 .collect(toMap(
-                        item -> item.path("MaDinhDanh").asText(),
-                        item -> item.path("TenDoThi").asText(),
+                        item -> item.path("MaDinhDanh").asString(),
+                        item -> item.path("TenDoThi").asString(),
                         (first, second) -> second
                 ));
 
@@ -107,7 +107,7 @@ public class CreateChuongTrinhPhatTrienDoThiHandlerAdvice implements HandlerAdvi
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
 
         if (!unexpectedData.isEmpty()) {
-            String tenTinhThanh = banTin.path("DonViThucHien").path("TenMuc").asText();
+            String tenTinhThanh = banTin.path("DonViThucHien").path("TenMuc").asString();
             List<ChiTietLoi> chiTietLoiList = unexpectedData.entrySet()
                     .stream()
                     .map(err -> new ChiTietLoi("DoThiPhatTrien.MaDinhDanh", String.format("%s (%s) không trực thuộc %s (%s)!", err.getValue(), err.getKey(), tenTinhThanh, tinhThanhMaMuc)))

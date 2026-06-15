@@ -1,7 +1,7 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.do_thi;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
 import com.fds.flexdata.pluginapi.HandlerAdvice;
@@ -44,7 +44,7 @@ public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
     }
 
     private void checkPermission(JsonNode body) {
-        dataPermissionService.checkTinhThanh(body.path("TrucThuocTinhThanh").path("MaMuc").asText());
+        dataPermissionService.checkTinhThanh(body.path("TrucThuocTinhThanh").path("MaMuc").asString());
 
         JsonNode diaBans = body.path("DiaBanTrucThuoc");
 
@@ -58,7 +58,7 @@ public class CreateDoThiHandlerAdvice implements HandlerAdvice, ExtensionPoint {
     }
 
     private void checkDiaBan(JsonNode diaBan) {
-        dataPermissionService.checkTinhThanh(diaBan.path("TinhThanh").path("MaMuc").asText());
-        dataPermissionService.checkXaPhuong(diaBan.path("XaPhuong").path("MaMuc").asText());
+        dataPermissionService.checkTinhThanh(diaBan.path("TinhThanh").path("MaMuc").asString());
+        dataPermissionService.checkXaPhuong(diaBan.path("XaPhuong").path("MaMuc").asString());
     }
 }

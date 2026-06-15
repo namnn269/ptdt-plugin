@@ -1,7 +1,7 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.bao_cao_chi_tiet;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
 import com.fds.flexdata.plugin.ptdt.service.BaoCaoService;
 import com.fds.flexdata.plugin.ptdt.service.UserAccessService;
@@ -66,11 +66,11 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
     }
 
     private void validateTinhThanhXaPhuong(MongoDatabase database, ClientSession session, JsonNode body) {
-        String tinhMa = body.path("TinhThanh").path("MaMuc").asText();
-        String tinhTen = body.path("TinhThanh").path("TenMuc").asText();
+        String tinhMa = body.path("TinhThanh").path("MaMuc").asString();
+        String tinhTen = body.path("TinhThanh").path("TenMuc").asString();
 
-        String xaMa = body.path("XaPhuong").path("MaMuc").asText();
-        String xaTen = body.path("XaPhuong").path("TenMuc").asText();
+        String xaMa = body.path("XaPhuong").path("MaMuc").asString();
+        String xaTen = body.path("XaPhuong").path("TenMuc").asString();
 
         UserAccessService.UserAccess access = userAccessService.getCurrentUserAccess();
 

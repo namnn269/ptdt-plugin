@@ -5,49 +5,42 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>4.0.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.fds.flexdata.plugin</groupId>
     <artifactId>ptdt-plugin</artifactId>
-    <version>0.0.1</version>
+    <version>2.0.0</version>
     <name>ptdt-plugin</name>
     <description>ptdt-plugin</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
+
     <properties>
         <java.version>21</java.version>
+        <flexdata.version>2.0.0</flexdata.version>
+        <pf4j-spring.version>0.10.0</pf4j-spring.version>
+        <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
+        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.pf4j</groupId>
             <artifactId>pf4j-spring</artifactId>
-            <version>0.10.0</version>
+            <version>${pf4j-spring.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>flexdata.core</groupId>
             <artifactId>role-manager</artifactId>
-            <version>1.5.0</version>
+            <version>${flexdata.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>flexdata.core</groupId>
             <artifactId>plugin-api</artifactId>
-            <version>1.2.1</version>
+            <version>${flexdata.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -80,7 +73,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>${maven-shade-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -90,7 +83,6 @@
                         <configuration>
                             <!-- Không tạo classifier "shaded" -->
                             <shadedArtifactAttached>false</shadedArtifactAttached>
-                            <shadedClassifierName></shadedClassifierName>
                             <!-- Ghi đè artifact gốc bằng shaded jar -->
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
@@ -100,7 +92,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>${maven-antrun-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>remove-original-jar</id>
@@ -118,8 +110,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
-
 </project>
