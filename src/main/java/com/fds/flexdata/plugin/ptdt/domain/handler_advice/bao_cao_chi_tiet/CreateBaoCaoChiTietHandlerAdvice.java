@@ -3,6 +3,7 @@ package com.fds.flexdata.plugin.ptdt.domain.handler_advice.bao_cao_chi_tiet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
+import com.fds.flexdata.plugin.ptdt.service.BaoCaoService;
 import com.fds.flexdata.plugin.ptdt.service.UserAccessService;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
 import com.fds.flexdata.pluginapi.HandlerAdvice;
@@ -24,6 +25,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -33,12 +36,14 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
 
     private final HandlerAdviceKey key;
     private final UserAccessService userAccessService;
+    private final BaoCaoService baoCaoService;
 
     public CreateBaoCaoChiTietHandlerAdvice(
             Environment env,
-            UserAccessService userAccessService
+            UserAccessService userAccessService, BaoCaoService baoCaoService
     ) {
         this.userAccessService = userAccessService;
+        this.baoCaoService = baoCaoService;
 
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
         this.key = new HandlerAdviceKey(csdl, "T_BaoCaoTongHop", OpenAPI.Type.CREATE);
@@ -121,6 +126,25 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
                             ObjectUtils.isEmpty(tinhTen) ? "tỉnh/thành" : tinhTen,
                             tinhMa
                     )
+            );
+        }
+        String maDinhDanh = body.path("NguoiTaoLap").path("MaDinhDanh").asText();
+        String tenCanBo = body.path("NguoiTaoLap").path("TenCanBo").asText();
+        if(!maDinhDanh.equals(access.canBoInfo().getString("MaDinhDanh")) || !tenCanBo.equals(access.canBoInfo().getString("HoVaTen"))) {
+            throwError(
+                    "NguoiTaoLap",
+                        "Người tạo lập không có quyền thao tác"
+            );
+        }
+        String thangBaoCao = body.path("KyBaoCao.MaMuc").asText();
+        int namBaoCao = body.path("NamBaoCao").asInt();
+
+        boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao);
+
+        if(exits) {
+            throwError(
+                    "KyBaoCao",
+                    "Báo cáo của kỳ " + thangBaoCao + "/" + namBaoCao +" đã tồn tại"
             );
         }
     }

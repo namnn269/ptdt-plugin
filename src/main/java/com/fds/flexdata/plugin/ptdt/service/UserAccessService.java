@@ -1,5 +1,6 @@
 package com.fds.flexdata.plugin.ptdt.service;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fds.flex.user.context.UserContextHolder;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
 import com.fds.flexdata.plugin.ptdt.shared.DanhTinhDienTuUtils;
@@ -7,6 +8,9 @@ import com.fds.flexdata.pluginapi.CommonFunctionHandler;
 import com.fds.flexdata.pluginapi.exception.AppException;
 import com.fds.flexdata.pluginapi.object_value.DetailError;
 import com.fds.flexdata.pluginapi.object_value.MessageCode;
+import com.fds.flexdata.pluginapi.query.DataSourceRequest;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.stereotype.Component;
@@ -31,7 +35,6 @@ public class UserAccessService {
                 .getUser()
                 .getDanhTinhDienTu()
                 .getMaSoID();
-
         if (ObjectUtils.isEmpty(maSoID)) {
             throwError("User", "Không xác định được người dùng đăng nhập!");
         }
@@ -71,14 +74,33 @@ public class UserAccessService {
                 .filter(maMuc -> !maMuc.isEmpty())
                 .collect(Collectors.toSet());
 
+        DataSourceRequest dataSourceRequestCanBo =
+                new DataSourceRequest("csdl-ptdt", "CanBo");
+        String maDinhDanh = userDoc.getString("MaDinhDanh");
+        List<Document> canBoResult = commonFunctionHandler.aggregate(
+                dataSourceRequestCanBo,
+                List.of(Aggregates.match(
+                        Filters.eq("DanhTinhDienTu.MaDinhDanh", maDinhDanh)
+                ))
+        );
 
-        return new UserAccess(admin, canBoCuc, allowed);
+        Document canBoInfo = null;
+
+        if (canBoResult != null && !canBoResult.isEmpty()) {
+            Document canBo = canBoResult.get(0);
+
+            canBoInfo = new Document()
+                    .append("MaDinhDanh", canBo.getString("MaDinhDanh"))
+                    .append("HoVaTen", canBo.getString("HoVaTen"));
+        }
+
+        return new UserAccess(admin, canBoCuc, allowed,canBoInfo);
     }
 
     private void throwError(String field, String message) {
         throw new AppException(MessageCode.LOI_DU_LIEU, MessageCode.LOI_DU_LIEU.getValue(), DetailError.E4, List.of(new ChiTietLoi(field, message)));
     }
 
-    public record UserAccess(boolean admin, boolean canBoCuc, Set<String> allowed) {
+    public record UserAccess(boolean admin, boolean canBoCuc, Set<String> allowed, Document canBoInfo) {
     }
 }
