@@ -5,9 +5,10 @@ import com.fds.flexdata.pluginapi.query.DataSourceRequest;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+@Service
 public class BaoCaoService {
 
     private final CommonFunctionHandler commonFunctionHandler;

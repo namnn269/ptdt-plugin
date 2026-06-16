@@ -1,6 +1,6 @@
 package com.fds.flexdata.plugin.ptdt.service;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import com.fds.flex.user.context.UserContextHolder;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
 import com.fds.flexdata.plugin.ptdt.shared.DanhTinhDienTuUtils;

@@ -27,7 +27,7 @@ public final class DanhTinhDienTuUtils {
 
         List<Document> documents = commonFunctionHandler.aggregate(dataSourceRequest,
                 List.of(Aggregates.match(Filters.eq("MaSoID", maSoID)),
-                        Aggregates.project(Projections.fields(Projections.include("TaiKhoanQuanTri", "PhanVungDuLieuTruyCap")))));
+                        Aggregates.project(Projections.fields(Projections.include("TaiKhoanQuanTri", "PhanVungDuLieuTruyCap","MaDinhDanh")))));
         if (documents == null || documents.isEmpty()) {
             return null;
         }

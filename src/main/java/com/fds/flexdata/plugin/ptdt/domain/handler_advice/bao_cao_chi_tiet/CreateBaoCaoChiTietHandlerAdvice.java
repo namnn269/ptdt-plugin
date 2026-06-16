@@ -74,9 +74,9 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
 
         UserAccessService.UserAccess access = userAccessService.getCurrentUserAccess();
 
-        if (access.admin() || access.canBoCuc()) {
-            return;
-        }
+//        if (access.admin() || access.canBoCuc()) {
+//            return;
+//        }
 
         if (ObjectUtils.isEmpty(access.allowed())) {
             throwError("XaPhuong.MaMuc", "Người dùng chưa được phân vùng dữ liệu truy cập!");
@@ -136,13 +136,13 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
                         "Người tạo lập không có quyền thao tác"
             );
         }
-        String thangBaoCao = body.path("KyBaoCao.MaMuc").asText();
+        String thangBaoCao = body.path("KyBaoCao").path("MaMuc").asText();
         int namBaoCao = body.path("NamBaoCao").asInt();
 
         boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao);
 
         if(exits) {
-            throwError(
+            throwErrorConflic(
                     "KyBaoCao",
                     "Báo cáo của kỳ " + thangBaoCao + "/" + namBaoCao +" đã tồn tại"
             );
@@ -154,6 +154,14 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
                 MessageCode.LOI_PHAN_QUYEN,
                 MessageCode.LOI_PHAN_QUYEN.getValue(),
                 DetailError.E4,
+                List.of(new ChiTietLoi(field, message))
+        );
+    }
+    private void throwErrorConflic(String field, String message) {
+        throw new AppException(
+                MessageCode.LOI_DU_LIEU,
+                MessageCode.LOI_DU_LIEU.getValue(),
+                DetailError.E3,
                 List.of(new ChiTietLoi(field, message))
         );
     }
