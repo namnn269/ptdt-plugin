@@ -1,5 +1,6 @@
 package com.fds.flexdata.plugin.ptdt.domain.handler_advice.bao_cao_chi_tiet;
 
+import com.fds.flexdata.plugin.ptdt.service.BaoCaoService;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
@@ -33,12 +34,13 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
 
     private final HandlerAdviceKey key;
     private final UserAccessService userAccessService;
-
+    private final BaoCaoService baoCaoService;
     public UpdateBaoCaoChiTietHandlerAdvice(
             Environment env,
-            UserAccessService userAccessService
+            UserAccessService userAccessService, BaoCaoService baoCaoService
     ) {
         this.userAccessService = userAccessService;
+        this.baoCaoService = baoCaoService;
 
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
         this.key = new HandlerAdviceKey(csdl, "T_BaoCaoTongHop", OpenAPI.Type.UPDATE);
@@ -69,9 +71,9 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
 
         UserAccessService.UserAccess access = userAccessService.getCurrentUserAccess();
 
-        if (access.admin() || access.canBoCuc()) {
-            return;
-        }
+//        if (access.admin() || access.canBoCuc()) {
+//            return;
+//        }
 
         if (ObjectUtils.isEmpty(access.allowed())) {
             throwError("XaPhuong.MaMuc", "Người dùng chưa được phân vùng dữ liệu truy cập!");
@@ -123,6 +125,25 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
                     )
             );
         }
+        String maDinhDanh = body.path("NguoiTaoLap").path("MaDinhDanh").asText();
+        String tenCanBo = body.path("NguoiTaoLap").path("TenCanBo").asText();
+        if(!maDinhDanh.equals(access.canBoInfo().getString("MaDinhDanh")) || !tenCanBo.equals(access.canBoInfo().getString("HoVaTen"))) {
+            throwError(
+                    "NguoiTaoLap",
+                    "Người tạo lập không có quyền thao tác"
+            );
+        }
+        String thangBaoCao = body.path("KyBaoCao").path("MaMuc").asText();
+        int namBaoCao = body.path("NamBaoCao").asInt();
+
+        boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao);
+
+        if(exits) {
+            throwErrorConflic(
+                    "KyBaoCao",
+                    "Báo cáo của kỳ " + thangBaoCao + "/" + namBaoCao +" đã tồn tại"
+            );
+        }
     }
 
     private void throwError(String field, String message) {
@@ -130,6 +151,14 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
                 MessageCode.LOI_PHAN_QUYEN,
                 MessageCode.LOI_PHAN_QUYEN.getValue(),
                 DetailError.E4,
+                List.of(new ChiTietLoi(field, message))
+        );
+    }
+    private void throwErrorConflic(String field, String message) {
+        throw new AppException(
+                MessageCode.LOI_DU_LIEU,
+                MessageCode.LOI_DU_LIEU.getValue(),
+                DetailError.E3,
                 List.of(new ChiTietLoi(field, message))
         );
     }

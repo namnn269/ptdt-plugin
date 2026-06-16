@@ -2,12 +2,15 @@ package com.fds.flexdata.plugin.ptdt.service;
 
 import com.fds.flexdata.pluginapi.CommonFunctionHandler;
 import com.fds.flexdata.pluginapi.query.DataSourceRequest;
+import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+
 @Service
 public class BaoCaoService {
 
@@ -18,7 +21,6 @@ public class BaoCaoService {
     }
 
     public boolean exitBaoCao(String thangBaoCao, Integer namBaoCao) {
-
         DataSourceRequest dataSourceRequestCanBo =
                 new DataSourceRequest("csdl-ptdt", "BaoCaoTongHop");
 
@@ -36,8 +38,40 @@ public class BaoCaoService {
 
         return !baoCao.isEmpty();
 
-
     }
 
+    public Map<String, Object> total(String maTinhThanh) {
+
+        DataSourceRequest dataSourceRequest =
+                new DataSourceRequest("csdl-ptdt", "DoThi");
+
+        List<Document> result = commonFunctionHandler.aggregate(
+                dataSourceRequest,
+                List.of(
+                        Aggregates.match(
+                                Filters.eq("TrucThuocTinhThanh.MaMuc", maTinhThanh)
+                        ),
+                        Aggregates.group(
+                                null,
+                                Accumulators.sum("tongDanSoDoThi", "$DanSoDoThi"),
+                                Accumulators.sum("tongDienTichDoThi", "$DienTichDoThi")
+                        )
+                )
+        );
+
+        if (result.isEmpty()) {
+            return Map.of(
+                    "tongDanSoDoThi", 0,
+                    "tongDienTichDoThi", 0
+            );
+        }
+
+        Document doc = result.get(0);
+
+        return Map.of(
+                "TongDanSoDoThi", doc.get("tongDanSoDoThi"),
+                "TongDienTichDoThi", doc.get("tongDienTichDoThi")
+        );
+    }
 
 }
