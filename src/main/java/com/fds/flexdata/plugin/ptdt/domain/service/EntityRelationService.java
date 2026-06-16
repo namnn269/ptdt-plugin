@@ -1,4 +1,4 @@
-package com.fds.flexdata.plugin.ptdt.service;
+package com.fds.flexdata.plugin.ptdt.domain.service;
 
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
 import com.fds.flexdata.pluginapi.exception.AppException;

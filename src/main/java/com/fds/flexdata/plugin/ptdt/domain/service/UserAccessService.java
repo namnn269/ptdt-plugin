@@ -1,4 +1,4 @@
-package com.fds.flexdata.plugin.ptdt.service;
+package com.fds.flexdata.plugin.ptdt.domain.service;
 
 import com.fds.flex.user.context.UserContextHolder;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;

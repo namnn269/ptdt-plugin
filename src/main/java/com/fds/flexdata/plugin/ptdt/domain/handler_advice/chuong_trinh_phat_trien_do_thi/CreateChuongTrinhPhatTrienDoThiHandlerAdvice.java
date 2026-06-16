@@ -3,8 +3,8 @@ package com.fds.flexdata.plugin.ptdt.domain.handler_advice.chuong_trinh_phat_tri
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
-import com.fds.flexdata.plugin.ptdt.service.DataPermissionService;
-import com.fds.flexdata.plugin.ptdt.service.EntityRelationService;
+import com.fds.flexdata.plugin.ptdt.domain.service.DataPermissionService;
+import com.fds.flexdata.plugin.ptdt.domain.service.EntityRelationService;
 import com.fds.flexdata.plugin.ptdt.shared.JsonUtils;
 import com.fds.flexdata.pluginapi.HandlerAdvice;
 import com.fds.flexdata.pluginapi.annotation.OpenAPI;

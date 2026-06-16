@@ -1,13 +1,11 @@
-package com.fds.flexdata.plugin.ptdt.service;
+package com.fds.flexdata.plugin.ptdt.domain.service;
 
 import com.fds.flexdata.plugin.ptdt.domain.dto.ChiTietLoi;
-import com.fds.flexdata.plugin.ptdt.service.UserAccessService;
 import com.fds.flexdata.pluginapi.exception.AppException;
 import com.fds.flexdata.pluginapi.object_value.DetailError;
 import com.fds.flexdata.pluginapi.object_value.MessageCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
