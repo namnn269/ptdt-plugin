@@ -133,17 +133,17 @@ public class UpdateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
                     "Người tạo lập không có quyền thao tác"
             );
         }
-        String thangBaoCao = body.path("KyBaoCao").path("MaMuc").asText();
-        int namBaoCao = body.path("NamBaoCao").asInt();
+//        String thangBaoCao = body.path("KyBaoCao").path("MaMuc").asText();
+//        int namBaoCao = body.path("NamBaoCao").asInt();
 
-        boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao);
+//        boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao);
 
-        if(exits) {
-            throwErrorConflic(
-                    "KyBaoCao",
-                    "Báo cáo của kỳ " + thangBaoCao + "/" + namBaoCao +" đã tồn tại"
-            );
-        }
+//        if(exits) {
+//            throwErrorConflic(
+//                    "KyBaoCao",
+//                    "Báo cáo của kỳ " + thangBaoCao + "/" + namBaoCao +" đã tồn tại"
+//            );
+//        }
     }
 
     private void throwError(String field, String message) {

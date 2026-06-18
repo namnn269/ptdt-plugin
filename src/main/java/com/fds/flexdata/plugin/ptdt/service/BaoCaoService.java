@@ -7,6 +7,7 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,48 @@ public class BaoCaoService {
                         )
                 )
         );
+
+        return !baoCao.isEmpty();
+
+    }
+
+    public boolean exitBaoCao(String thangBaoCao, Integer namBaoCao, String tinhMa, String xaMa) {
+        DataSourceRequest dataSourceRequestCanBo =
+                new DataSourceRequest("csdl-ptdt", "BaoCaoTongHop");
+
+        List<Document> baoCao;
+        if (ObjectUtils.isEmpty(xaMa)) {
+            baoCao = commonFunctionHandler.aggregate(
+                    dataSourceRequestCanBo,
+                    List.of(
+                            Aggregates.match(
+                                    Filters.and(
+                                            Filters.eq("KyBaoCao.MaMuc", thangBaoCao),
+                                            Filters.eq("NamBaoCao", namBaoCao),
+                                            Filters.eq("TinhThanh.MaMuc", tinhMa),
+                                            Filters.or(
+                                                    Filters.eq("XaPhuong.MaMuc", null),
+                                                    Filters.eq("XaPhuong.MaMuc", "")
+                                            )
+                                    )
+                            )
+                    )
+            );
+        } else {
+            baoCao = commonFunctionHandler.aggregate(
+                    dataSourceRequestCanBo,
+                    List.of(
+                            Aggregates.match(
+                                    Filters.and(
+                                            Filters.eq("KyBaoCao.MaMuc", thangBaoCao),
+                                            Filters.eq("NamBaoCao", namBaoCao),
+                                            Filters.eq("TinhThanh.MaMuc", tinhMa),
+                                            Filters.eq("XaPhuong.MaMuc", xaMa)
+                                    )
+                            )
+                    )
+            );
+        }
 
         return !baoCao.isEmpty();
 

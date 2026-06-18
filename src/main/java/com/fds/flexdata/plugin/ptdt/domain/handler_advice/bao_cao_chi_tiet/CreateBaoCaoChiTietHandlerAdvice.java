@@ -139,7 +139,7 @@ public class CreateBaoCaoChiTietHandlerAdvice implements HandlerAdvice, Extensio
         String thangBaoCao = body.path("KyBaoCao").path("MaMuc").asText();
         int namBaoCao = body.path("NamBaoCao").asInt();
 
-        boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao);
+        boolean exits = baoCaoService.exitBaoCao(thangBaoCao,namBaoCao,tinhMa,xaMa);
 
         if(exits) {
             throwErrorConflic(

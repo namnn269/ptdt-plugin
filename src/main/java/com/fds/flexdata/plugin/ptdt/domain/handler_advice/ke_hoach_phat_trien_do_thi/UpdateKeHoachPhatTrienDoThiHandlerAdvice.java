@@ -24,7 +24,7 @@ public class UpdateKeHoachPhatTrienDoThiHandlerAdvice implements HandlerAdvice, 
     public UpdateKeHoachPhatTrienDoThiHandlerAdvice(Environment env, DataPermissionService dataPermissionService) {
         this.dataPermissionService = dataPermissionService;
         String csdl = env.getProperty("app.datasource.namespace.ptdt", "csdl-ptdt");
-        this.key = new HandlerAdviceKey(csdl, "T_DoThi", OpenAPI.Type.UPDATE);
+        this.key = new HandlerAdviceKey(csdl, "T_KeHoachPhatTrienDoThi", OpenAPI.Type.UPDATE);
     }
 
     @Override
